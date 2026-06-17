@@ -1,14 +1,16 @@
 name: Template Workflow
-
-on: 
-    workflow_call:
-      inputs:
-        flag:
-          required: false
-          type: string
-      secrets:
-        SNYK_TOKEN:
-          required: true
+on:
+  workflow_call:
+    inputs:
+      flag:
+        required: false
+        type: string
+      container_image:
+        required: false
+        type: string
+    secrets:
+      SNYK_TOKEN:
+        required: true
 
 jobs:
   Setup-and-run-snyk:
@@ -16,26 +18,34 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-      
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
       - name: Install Snyk CLI
         run: npm install -g snyk
 
-      - name: Authenticate Snyk
-        run: |
-          export SNYK_TOKEN=${{ secrets.SNYK_TOKEN }}
-          snyk auth $SNYK_TOKEN
-    
       - name: Run Snyk Code Test
         run: snyk code test
         continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Run Snyk Open Source Test
         run: snyk test ${{ inputs.flag }}
         continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Run Snyk Container Test
-        run: snyk container
+        if: ${{ inputs.container_image != '' }}
+        run: snyk container test ${{ inputs.container_image }}
         continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
