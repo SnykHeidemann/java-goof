@@ -7,7 +7,7 @@ jobs:
     uses: SnykHeidemann/java-goof/.github/workflows/snyk-gha-cli-template.yml@main  # Specify repo and branch
     with:
       flag_test: "--all-projects"
-      flag_code: ""
-      flag_iac: ""
+      flag_code: "--severity-threshold=high"
+      flag_iac: "--severity-threshold=medium"
     secrets:
       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
