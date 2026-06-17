@@ -2,7 +2,13 @@ name: Template Workflow
 on:
   workflow_call:
     inputs:
-      flag:
+      flag_test:
+        required: false
+        type: string
+      flag_code:
+        required: false
+        type: string
+      flag_iac:
         required: false
         type: string
       container_image:
@@ -18,27 +24,30 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
-
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-
       - name: Install Snyk CLI
         run: npm install -g snyk
 
       - name: Run Snyk Code Test
-        run: snyk code test
+        run: snyk code test ${{ inputs.flag_code }}
         continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Run Snyk Open Source Test
-        run: snyk test ${{ inputs.flag }}
+        run: snyk test ${{ inputs.flag_test }}
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Run Snyk IaC Test
+        run: snyk iac test ${{ inputs.flag_iac }}
         continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
